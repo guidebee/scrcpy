@@ -403,6 +403,13 @@ input_manager_process_key(struct input_manager *im,
                     rotate_device(controller);
                 }
                 return;
+
+            case SDLK_k:
+                if (control && cmd && !shift && !repeat && down) {
+                    screen_capture(im->screen);
+                }
+
+                return;
         }
 
         return;

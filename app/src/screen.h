@@ -91,4 +91,7 @@ screen_resize_to_pixel_perfect(struct screen *screen);
 void
 screen_handle_window_event(struct screen *screen, const SDL_WindowEvent *event);
 
+void
+screen_capture(struct screen *screen);
+
 #endif

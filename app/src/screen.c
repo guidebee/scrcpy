@@ -314,12 +314,33 @@ screen_update_frame(struct screen *screen, struct video_buffer *vb) {
     return true;
 }
 
+
+void save_texture( SDL_Renderer* renderer, SDL_Texture* texture,const char* file_name) {
+    SDL_Texture* target = SDL_GetRenderTarget(renderer);
+    SDL_SetRenderTarget(renderer, texture);
+    int width, height;
+    SDL_QueryTexture(texture, NULL, NULL, &width, &height);
+    SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+    SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);
+    SDL_SaveBMP(surface, file_name);
+    SDL_FreeSurface(surface);
+    SDL_SetRenderTarget(renderer, target);
+}
+
 void
 screen_render(struct screen *screen) {
+
     SDL_RenderClear(screen->renderer);
     SDL_RenderCopy(screen->renderer, screen->texture, NULL, NULL);
     SDL_RenderPresent(screen->renderer);
+
+
 }
+
+void screen_capture(struct screen *screen) {
+    save_texture(screen->renderer, screen->texture,"capture.bmp");
+}
+
 
 void
 screen_switch_fullscreen(struct screen *screen) {
