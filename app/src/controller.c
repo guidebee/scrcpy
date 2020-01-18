@@ -15,7 +15,7 @@ controller_init(struct controller *controller, socket_t control_socket,socket_t 
         return false;
     }
 
-    if (!remote_init(&controller->remote, remote_control_socket,remote_client_socket)) {
+    if (!remote_init(&controller->remote, remote_control_socket,remote_client_socket,controller)) {
         return false;
     }
 

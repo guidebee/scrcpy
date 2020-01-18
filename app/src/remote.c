@@ -6,10 +6,10 @@
 #include "config.h"
 #include "remote_control_msg.h"
 #include "control_msg.h"
+#include "controller.h"
 #include "util/lock.h"
 #include "util/log.h"
 #include "util/net.h"
-
 
 
 //#define IPV4_LOCALHOST 0x7F000001
@@ -30,16 +30,17 @@ close_socket(socket_t *socket) {
 
 
 bool
-remote_init(struct remote *remote, socket_t control_socket, socket_t client_socket) {
+remote_init(struct remote *remote, socket_t control_socket, socket_t client_socket, struct controller *controller) {
     if (!(remote->mutex = SDL_CreateMutex())) {
         return false;
     }
     remote->control_socket = control_socket;
-    remote->remote_client_socket=client_socket;
+    remote->remote_client_socket = client_socket;
+    remote->controller = controller;
     return true;
 }
 
-bool remote_reboot_client_socket(struct remote *remote){
+bool remote_reboot_client_socket(struct remote *remote) {
     if (remote->remote_client_socket != INVALID_SOCKET) {
         close_socket(&remote->remote_client_socket);
 
@@ -59,18 +60,19 @@ remote_destroy(struct remote *remote) {
 }
 
 static void
-process_msg(struct control_msg *msg) {
+process_msg(struct remote *remote,struct control_msg *msg) {
 //    switch (msg->type) {
 //        case DEVICE_MSG_TYPE_CLIPBOARD:
 //            
 //            SDL_SetClipboardText(msg->clipboard.text);
 //            break;
 //    }
+    controller_push_msg(remote->controller,msg);
     LOGI("Remote control message received");
 }
 
 static ssize_t
-process_msgs(const unsigned char *buf, size_t len) {
+process_msgs(struct remote *remote,const unsigned char *buf, size_t len) {
     size_t head = 0;
     for (;;) {
         struct control_msg msg;
@@ -82,9 +84,7 @@ process_msgs(const unsigned char *buf, size_t len) {
             return head;
         }
 
-        process_msg(&msg);
-        control_msg_destroy(&msg);
-
+        process_msg(remote,&msg);
         head += r;
         assert(head <= len);
         if (head == len) {
@@ -110,16 +110,15 @@ run_remote(void *data) {
         assert(head < CONTROL_MSG_SERIALIZED_MAX_SIZE);
         ssize_t r = net_recv(remote->remote_client_socket, buf,
                              CONTROL_MSG_SERIALIZED_MAX_SIZE - head);
-        if (r <= 0 ) {
-
-            remote->remote_client_socket=INVALID_SOCKET;
+        if (r <= 0) {
+            remote->remote_client_socket = INVALID_SOCKET;
             LOGD("Remote Stopped, restarting");
-            if(!remote_reboot_client_socket(remote)) {
+            if (!remote_reboot_client_socket(remote)) {
                 break;
             }
         }
 
-        ssize_t consumed = process_msgs(buf, r);
+        ssize_t consumed = process_msgs(remote,buf, r);
         if (consumed == -1) {
             // an error occurred
             break;

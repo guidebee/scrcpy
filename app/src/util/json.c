@@ -1073,7 +1073,7 @@ void process_array(json_value *value, int depth) {
 }
 
 void process_value(json_value *value, int depth) {
-    int j;
+
     if (value == NULL) {
         return;
     }
@@ -1085,12 +1085,15 @@ void process_value(json_value *value, int depth) {
             printf("none\n");
             break;
         case json_object:
+            printf("object\n");
             process_object(value, depth + 1);
             break;
         case json_array:
+            printf("object\n");
             process_array(value, depth + 1);
             break;
         case json_integer:
+
             printf("int: %10" PRId64 "\n", value->u.integer);
             break;
         case json_double:
