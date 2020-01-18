@@ -26,7 +26,8 @@ struct controller {
 };
 
 bool
-controller_init(struct controller *controller, socket_t control_socket,socket_t remote_control_socket);
+controller_init(struct controller *controller, socket_t control_socket,
+        socket_t remote_control_socket,socket_t remote_client_socket);
 
 void
 controller_destroy(struct controller *controller);

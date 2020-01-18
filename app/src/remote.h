@@ -12,13 +12,14 @@
 // managed by the controller
 struct remote {
     socket_t control_socket;
+    socket_t remote_client_socket;
     SDL_Thread *thread;
     SDL_mutex *mutex;
 
 };
 
 bool
-remote_init(struct remote *remote, socket_t control_socket);
+remote_init(struct remote *remote, socket_t control_socket, socket_t client_socket);
 
 void
 remote_destroy(struct remote *remote);

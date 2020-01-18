@@ -376,7 +376,8 @@ scrcpy(const struct scrcpy_options *options) {
 
     if (options->display) {
         if (options->control) {
-            if (!controller_init(&controller, server.control_socket,server.remote_server_socket)) {
+            if (!controller_init(&controller, server.control_socket,
+                    server.remote_server_socket,server.remote_client_socket)) {
                 goto end;
             }
             controller_initialized = true;

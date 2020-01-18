@@ -15,6 +15,7 @@ struct server {
     socket_t video_socket;
     socket_t control_socket;
     socket_t remote_server_socket;
+    socket_t remote_client_socket;
     uint16_t local_port;
     bool tunnel_enabled;
     bool tunnel_forward; // use "adb forward" instead of "adb reverse"

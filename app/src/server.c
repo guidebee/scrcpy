@@ -267,6 +267,8 @@ server_start(struct server *server, const char *serial,
         return false;
     }
 
+    server->remote_client_socket = INVALID_SOCKET;
+
     // server will connect to our server socket
     server->process = execute_server(server, params);
 
@@ -335,6 +337,12 @@ server_stop(struct server *server) {
     if (server->control_socket != INVALID_SOCKET) {
         close_socket(&server->control_socket);
     }
+    if (server->remote_server_socket != INVALID_SOCKET) {
+        close_socket(&server->remote_server_socket);
+    }
+    if (server->remote_client_socket != INVALID_SOCKET) {
+        close_socket(&server->remote_client_socket);
+    }
 
     assert(server->process != PROCESS_NONE);
 
@@ -354,7 +362,4 @@ server_stop(struct server *server) {
 void
 server_destroy(struct server *server) {
     SDL_free(server->serial);
-    if (server->remote_server_socket != INVALID_SOCKET) {
-        close_socket(&server->remote_server_socket);
-    }
 }
