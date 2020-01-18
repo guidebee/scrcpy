@@ -32,6 +32,8 @@ struct scrcpy_options {
     bool render_expired_frames;
     bool prefer_text;
     bool window_borderless;
+    uint16_t screen_width;
+    uint16_t screen_height;
 };
 
 #define SCRCPY_OPTIONS_DEFAULT { \

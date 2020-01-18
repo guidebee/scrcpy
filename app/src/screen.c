@@ -4,6 +4,7 @@
 #include <string.h>
 #include <SDL2/SDL.h>
 
+
 #include "config.h"
 #include "common.h"
 #include "compat.h"
@@ -42,7 +43,7 @@ static void
 apply_windowed_size(struct screen *screen) {
     if (!screen->fullscreen && !screen->maximized) {
         SDL_SetWindowSize(screen->window, screen->windowed_window_size.width,
-                                          screen->windowed_window_size.height);
+                          screen->windowed_window_size.height);
     }
 }
 
@@ -136,14 +137,14 @@ get_initial_optimal_size(struct size frame_size, uint16_t req_width,
         } else {
             // compute from the requested height
             window_size.width = (uint32_t) req_height * frame_size.width
-                              / frame_size.height;
+                                / frame_size.height;
         }
         if (req_height) {
             window_size.height = req_height;
         } else {
             // compute from the requested width
             window_size.height = (uint32_t) req_width * frame_size.height
-                               / frame_size.width;
+                                 / frame_size.width;
         }
     }
     return window_size;
@@ -165,11 +166,19 @@ bool
 screen_init_rendering(struct screen *screen, const char *window_title,
                       struct size frame_size, bool always_on_top,
                       int16_t window_x, int16_t window_y, uint16_t window_width,
-                      uint16_t window_height, bool window_borderless) {
+                      uint16_t window_height, uint16_t screen_width,
+                      uint16_t screen_height, bool window_borderless) {
     screen->frame_size = frame_size;
 
+    if (screen_width * screen_height != 0) {
+        screen->device_screen_size.width = screen_width;
+        screen->device_screen_size.height = screen_height;
+    } else {
+        screen->device_screen_size = frame_size;
+    }
+
     struct size window_size =
-        get_initial_optimal_size(frame_size, window_width, window_height);
+            get_initial_optimal_size(frame_size, window_width, window_height);
     uint32_t window_flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE;
 #ifdef HIDPI_SUPPORT
     window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
@@ -219,8 +228,11 @@ screen_init_rendering(struct screen *screen, const char *window_title,
         LOGW("Could not load icon");
     }
 
-    LOGI("Initial texture: %" PRIu16 "x%" PRIu16, frame_size.width,
-                                                  frame_size.height);
+    LOGI("Initial texture: %"
+                 PRIu16
+                 "x%"
+                 PRIu16, frame_size.width,
+         frame_size.height);
     screen->texture = create_texture(screen->renderer, frame_size);
     if (!screen->texture) {
         LOGC("Could not create texture: %s", SDL_GetError());
@@ -255,7 +267,7 @@ screen_destroy(struct screen *screen) {
 static bool
 prepare_for_frame(struct screen *screen, struct size new_frame_size) {
     if (screen->frame_size.width != new_frame_size.width
-            || screen->frame_size.height != new_frame_size.height) {
+        || screen->frame_size.height != new_frame_size.height) {
         if (SDL_RenderSetLogicalSize(screen->renderer, new_frame_size.width,
                                      new_frame_size.height)) {
             LOGE("Could not set renderer logical size: %s", SDL_GetError());
@@ -267,18 +279,21 @@ prepare_for_frame(struct screen *screen, struct size new_frame_size) {
 
         struct size windowed_size = get_windowed_window_size(screen);
         struct size target_size = {
-            (uint32_t) windowed_size.width * new_frame_size.width
-                    / screen->frame_size.width,
-            (uint32_t) windowed_size.height * new_frame_size.height
-                    / screen->frame_size.height,
+                (uint32_t) windowed_size.width * new_frame_size.width
+                / screen->frame_size.width,
+                (uint32_t) windowed_size.height * new_frame_size.height
+                / screen->frame_size.height,
         };
         target_size = get_optimal_size(target_size, new_frame_size);
         set_window_size(screen, target_size);
 
         screen->frame_size = new_frame_size;
 
-        LOGI("New texture: %" PRIu16 "x%" PRIu16,
-                     screen->frame_size.width, screen->frame_size.height);
+        LOGI("New texture: %"
+                     PRIu16
+                     "x%"
+                     PRIu16,
+             screen->frame_size.width, screen->frame_size.height);
         screen->texture = create_texture(screen->renderer, new_frame_size);
         if (!screen->texture) {
             LOGC("Could not create texture: %s", SDL_GetError());
@@ -293,9 +308,9 @@ prepare_for_frame(struct screen *screen, struct size new_frame_size) {
 static void
 update_texture(struct screen *screen, const AVFrame *frame) {
     SDL_UpdateYUVTexture(screen->texture, NULL,
-            frame->data[0], frame->linesize[0],
-            frame->data[1], frame->linesize[1],
-            frame->data[2], frame->linesize[2]);
+                         frame->data[0], frame->linesize[0],
+                         frame->data[1], frame->linesize[1],
+                         frame->data[2], frame->linesize[2]);
 }
 
 bool
@@ -315,12 +330,26 @@ screen_update_frame(struct screen *screen, struct video_buffer *vb) {
 }
 
 
-void save_texture( SDL_Renderer* renderer, SDL_Texture* texture,const char* file_name) {
-    SDL_Texture* target = SDL_GetRenderTarget(renderer);
+
+void save_texture(struct screen *screen,SDL_Renderer *renderer, SDL_Texture *texture, const char *file_name) {
+    SDL_Texture *target = SDL_GetRenderTarget(renderer);
     SDL_SetRenderTarget(renderer, texture);
     int width, height;
     SDL_QueryTexture(texture, NULL, NULL, &width, &height);
-    SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+    bool is_portrait = height>width;
+    uint16_t screen_width=screen->device_screen_size.width;
+    uint16_t screen_height=screen->device_screen_size.height;
+    if (!is_portrait){
+        screen_width=screen->device_screen_size.height;
+        screen_height=screen->device_screen_size.width;
+    }
+    LOGI("Capture screen size: %"
+                 PRIu16
+                 "x%"
+                 PRIu16, screen_width,
+         screen_height);
+    SDL_Surface *surface = SDL_CreateRGBSurface(0, screen_width,
+                                                screen_height, 32, 0, 0, 0, 0);
     SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);
     SDL_SaveBMP(surface, file_name);
     SDL_FreeSurface(surface);
@@ -338,7 +367,7 @@ screen_render(struct screen *screen) {
 }
 
 void screen_capture(struct screen *screen) {
-    save_texture(screen->renderer, screen->texture,"capture.bmp");
+    save_texture(screen,screen->renderer, screen->texture, "capture.bmp");
 }
 
 
@@ -369,7 +398,7 @@ screen_resize_to_fit(struct screen *screen) {
     }
 
     struct size optimal_size =
-        get_optimal_window_size(screen, screen->frame_size);
+            get_optimal_window_size(screen, screen->frame_size);
     SDL_SetWindowSize(screen->window, optimal_size.width, optimal_size.height);
     LOGD("Resized to optimal size");
 }
@@ -404,7 +433,7 @@ screen_handle_window_event(struct screen *screen,
                 // We could not rely on the window flags due to race conditions
                 // (they could be updated asynchronously, at least on X11).
                 screen->windowed_window_size_backup =
-                    screen->windowed_window_size;
+                        screen->windowed_window_size;
 
                 // Save the windowed size, so that it is available once the
                 // window is maximized or fullscreen is enabled.
@@ -419,9 +448,9 @@ screen_handle_window_event(struct screen *screen,
             // Revert the last size, it was updated while screen was maximized.
             screen->windowed_window_size = screen->windowed_window_size_backup;
 #ifdef DEBUG
-            // Reset the backup to invalid values to detect unexpected usage
-            screen->windowed_window_size_backup.width = 0;
-            screen->windowed_window_size_backup.height = 0;
+        // Reset the backup to invalid values to detect unexpected usage
+        screen->windowed_window_size_backup.width = 0;
+        screen->windowed_window_size_backup.height = 0;
 #endif
             screen->maximized = true;
             break;

@@ -17,183 +17,191 @@ scrcpy_print_usage(const char *arg0) {
 # define CTRL_OR_CMD "Ctrl"
 #endif
     fprintf(stderr,
-        "Usage: %s [options]\n"
-        "\n"
-        "Options:\n"
-        "\n"
-        "    --always-on-top\n"
-        "        Make scrcpy window always on top (above other windows).\n"
-        "\n"
-        "    -b, --bit-rate value\n"
-        "        Encode the video at the given bit-rate, expressed in bits/s.\n"
-        "        Unit suffixes are supported: 'K' (x1000) and 'M' (x1000000).\n"
-        "        Default is %d.\n"
-        "\n"
-        "    --crop width:height:x:y\n"
-        "        Crop the device screen on the server.\n"
-        "        The values are expressed in the device natural orientation\n"
-        "        (typically, portrait for a phone, landscape for a tablet).\n"
-        "        Any --max-size value is computed on the cropped size.\n"
-        "\n"
-        "    -f, --fullscreen\n"
-        "        Start in fullscreen.\n"
-        "\n"
-        "    -h, --help\n"
-        "        Print this help.\n"
-        "\n"
-        "    --max-fps value\n"
-        "        Limit the frame rate of screen capture (only supported on\n"
-        "        devices with Android >= 10).\n"
-        "\n"
-        "    -m, --max-size value\n"
-        "        Limit both the width and height of the video to value. The\n"
-        "        other dimension is computed so that the device aspect-ratio\n"
-        "        is preserved.\n"
-        "        Default is %d%s.\n"
-        "\n"
-        "    -n, --no-control\n"
-        "        Disable device control (mirror the device in read-only).\n"
-        "\n"
-        "    -N, --no-display\n"
-        "        Do not display device (only when screen recording is\n"
-        "        enabled).\n"
-        "\n"
-        "    -p, --port port\n"
-        "        Set the TCP port the client listens on.\n"
-        "        Default is %d.\n"
-        "\n"
-        "    --prefer-text\n"
-        "        Inject alpha characters and space as text events instead of\n"
-        "        key events.\n"
-        "        This avoids issues when combining multiple keys to enter a\n"
-        "        special character, but breaks the expected behavior of alpha\n"
-        "        keys in games (typically WASD).\n"
-        "\n"
-        "    --push-target path\n"
-        "        Set the target directory for pushing files to the device by\n"
-        "        drag & drop. It is passed as-is to \"adb push\".\n"
-        "        Default is \"/sdcard/\".\n"
-        "\n"
-        "    -r, --record file.mp4\n"
-        "        Record screen to file.\n"
-        "        The format is determined by the --record-format option if\n"
-        "        set, or by the file extension (.mp4 or .mkv).\n"
-        "\n"
-        "    --record-format format\n"
-        "        Force recording format (either mp4 or mkv).\n"
-        "\n"
-        "    --render-expired-frames\n"
-        "        By default, to minimize latency, scrcpy always renders the\n"
-        "        last available decoded frame, and drops any previous ones.\n"
-        "        This flag forces to render all frames, at a cost of a\n"
-        "        possible increased latency.\n"
-        "\n"
-        "    -s, --serial serial\n"
-        "        The device serial number. Mandatory only if several devices\n"
-        "        are connected to adb.\n"
-        "\n"
-        "    -S, --turn-screen-off\n"
-        "        Turn the device screen off immediately.\n"
-        "\n"
-        "    -t, --show-touches\n"
-        "        Enable \"show touches\" on start, disable on quit.\n"
-        "        It only shows physical touches (not clicks from scrcpy).\n"
-        "\n"
-        "    -v, --version\n"
-        "        Print the version of scrcpy.\n"
-        "\n"
-        "    --window-borderless\n"
-        "        Disable window decorations (display borderless window).\n"
-        "\n"
-        "    --window-title text\n"
-        "        Set a custom window title.\n"
-        "\n"
-        "    --window-x value\n"
-        "        Set the initial window horizontal position.\n"
-        "        Default is -1 (automatic).\n"
-        "\n"
-        "    --window-y value\n"
-        "        Set the initial window vertical position.\n"
-        "        Default is -1 (automatic).\n"
-        "\n"
-        "    --window-width value\n"
-        "        Set the initial window width.\n"
-        "        Default is 0 (automatic).\n"
-        "\n"
-        "    --window-height value\n"
-        "        Set the initial window width.\n"
-        "        Default is 0 (automatic).\n"
-        "\n"
-        "Shortcuts:\n"
-        "\n"
-        "    " CTRL_OR_CMD "+f\n"
-        "        switch fullscreen mode\n"
-        "\n"
-        "    " CTRL_OR_CMD "+g\n"
-        "        resize window to 1:1 (pixel-perfect)\n"
-        "\n"
-        "    " CTRL_OR_CMD "+x\n"
-        "    Double-click on black borders\n"
-        "        resize window to remove black borders\n"
-        "\n"
-        "    Ctrl+h\n"
-        "    Middle-click\n"
-        "        click on HOME\n"
-        "\n"
-        "    " CTRL_OR_CMD "+b\n"
-        "    " CTRL_OR_CMD "+Backspace\n"
-        "    Right-click (when screen is on)\n"
-        "        click on BACK\n"
-        "\n"
-        "    " CTRL_OR_CMD "+s\n"
-        "        click on APP_SWITCH\n"
-        "\n"
-        "    Ctrl+m\n"
-        "        click on MENU\n"
-        "\n"
-        "    " CTRL_OR_CMD "+Up\n"
-        "        click on VOLUME_UP\n"
-        "\n"
-        "    " CTRL_OR_CMD "+Down\n"
-        "        click on VOLUME_DOWN\n"
-        "\n"
-        "    " CTRL_OR_CMD "+p\n"
-        "        click on POWER (turn screen on/off)\n"
-        "\n"
-        "    Right-click (when screen is off)\n"
-        "        power on\n"
-        "\n"
-        "    " CTRL_OR_CMD "+o\n"
-        "        turn device screen off (keep mirroring)\n"
-        "\n"
-        "    " CTRL_OR_CMD "+r\n"
-        "        rotate device screen\n"
-        "\n"
-        "    " CTRL_OR_CMD "+n\n"
-        "       expand notification panel\n"
-        "\n"
-        "    " CTRL_OR_CMD "+Shift+n\n"
-        "       collapse notification panel\n"
-        "\n"
-        "    " CTRL_OR_CMD "+c\n"
-        "        copy device clipboard to computer\n"
-        "\n"
-        "    " CTRL_OR_CMD "+v\n"
-        "        paste computer clipboard to device\n"
-        "\n"
-        "    " CTRL_OR_CMD "+Shift+v\n"
-        "        copy computer clipboard to device\n"
-        "\n"
-        "    " CTRL_OR_CMD "+i\n"
-        "        enable/disable FPS counter (print frames/second in logs)\n"
-        "\n"
-        "    Drag & drop APK file\n"
-        "        install APK from computer\n"
-        "\n",
-        arg0,
-        DEFAULT_BIT_RATE,
-        DEFAULT_MAX_SIZE, DEFAULT_MAX_SIZE ? "" : " (unlimited)",
-        DEFAULT_LOCAL_PORT);
+            "Usage: %s [options]\n"
+            "\n"
+            "Options:\n"
+            "\n"
+            "    --always-on-top\n"
+            "        Make scrcpy window always on top (above other windows).\n"
+            "\n"
+            "    -b, --bit-rate value\n"
+            "        Encode the video at the given bit-rate, expressed in bits/s.\n"
+            "        Unit suffixes are supported: 'K' (x1000) and 'M' (x1000000).\n"
+            "        Default is %d.\n"
+            "\n"
+            "    --crop width:height:x:y\n"
+            "        Crop the device screen on the server.\n"
+            "        The values are expressed in the device natural orientation\n"
+            "        (typically, portrait for a phone, landscape for a tablet).\n"
+            "        Any --max-size value is computed on the cropped size.\n"
+            "\n"
+            "    -f, --fullscreen\n"
+            "        Start in fullscreen.\n"
+            "\n"
+            "    -h, --help\n"
+            "        Print this help.\n"
+            "\n"
+            "    --max-fps value\n"
+            "        Limit the frame rate of screen capture (only supported on\n"
+            "        devices with Android >= 10).\n"
+            "\n"
+            "    -m, --max-size value\n"
+            "        Limit both the width and height of the video to value. The\n"
+            "        other dimension is computed so that the device aspect-ratio\n"
+            "        is preserved.\n"
+            "        Default is %d%s.\n"
+            "\n"
+            "    -n, --no-control\n"
+            "        Disable device control (mirror the device in read-only).\n"
+            "\n"
+            "    -N, --no-display\n"
+            "        Do not display device (only when screen recording is\n"
+            "        enabled).\n"
+            "\n"
+            "    -p, --port port\n"
+            "        Set the TCP port the client listens on.\n"
+            "        Default is %d.\n"
+            "\n"
+            "    --prefer-text\n"
+            "        Inject alpha characters and space as text events instead of\n"
+            "        key events.\n"
+            "        This avoids issues when combining multiple keys to enter a\n"
+            "        special character, but breaks the expected behavior of alpha\n"
+            "        keys in games (typically WASD).\n"
+            "\n"
+            "    --push-target path\n"
+            "        Set the target directory for pushing files to the device by\n"
+            "        drag & drop. It is passed as-is to \"adb push\".\n"
+            "        Default is \"/sdcard/\".\n"
+            "\n"
+            "    -r, --record file.mp4\n"
+            "        Record screen to file.\n"
+            "        The format is determined by the --record-format option if\n"
+            "        set, or by the file extension (.mp4 or .mkv).\n"
+            "\n"
+            "    --record-format format\n"
+            "        Force recording format (either mp4 or mkv).\n"
+            "\n"
+            "    --render-expired-frames\n"
+            "        By default, to minimize latency, scrcpy always renders the\n"
+            "        last available decoded frame, and drops any previous ones.\n"
+            "        This flag forces to render all frames, at a cost of a\n"
+            "        possible increased latency.\n"
+            "\n"
+            "    -s, --serial serial\n"
+            "        The device serial number. Mandatory only if several devices\n"
+            "        are connected to adb.\n"
+            "\n"
+            "    -S, --turn-screen-off\n"
+            "        Turn the device screen off immediately.\n"
+            "\n"
+            "    -t, --show-touches\n"
+            "        Enable \"show touches\" on start, disable on quit.\n"
+            "        It only shows physical touches (not clicks from scrcpy).\n"
+            "\n"
+            "    -v, --version\n"
+            "        Print the version of scrcpy.\n"
+            "\n"
+            "    --window-borderless\n"
+            "        Disable window decorations (display borderless window).\n"
+            "\n"
+            "    --window-title text\n"
+            "        Set a custom window title.\n"
+            "\n"
+            "    --window-x value\n"
+            "        Set the initial window horizontal position.\n"
+            "        Default is -1 (automatic).\n"
+            "\n"
+            "    --window-y value\n"
+            "        Set the initial window vertical position.\n"
+            "        Default is -1 (automatic).\n"
+            "\n"
+            "    --window-width value\n"
+            "        Set the initial window width.\n"
+            "        Default is 0 (automatic).\n"
+            "\n"
+            "    --window-height value\n"
+            "        Set the initial window height.\n"
+            "        Default is 0 (automatic).\n"
+            "\n"
+            "    --screen-width value\n"
+            "        Set the device screen width.\n"
+            "        Default is 0 (automatic).\n"
+            "\n"
+            "    --screen-height value\n"
+            "        Set the device screen height.\n"
+            "        Default is 0 (automatic).\n"
+            "\n"
+            "Shortcuts:\n"
+            "\n"
+            "    " CTRL_OR_CMD "+f\n"
+            "        switch fullscreen mode\n"
+            "\n"
+            "    " CTRL_OR_CMD "+g\n"
+            "        resize window to 1:1 (pixel-perfect)\n"
+            "\n"
+            "    " CTRL_OR_CMD "+x\n"
+            "    Double-click on black borders\n"
+            "        resize window to remove black borders\n"
+            "\n"
+            "    Ctrl+h\n"
+            "    Middle-click\n"
+            "        click on HOME\n"
+            "\n"
+            "    " CTRL_OR_CMD "+b\n"
+            "    " CTRL_OR_CMD "+Backspace\n"
+            "    Right-click (when screen is on)\n"
+            "        click on BACK\n"
+            "\n"
+            "    " CTRL_OR_CMD "+s\n"
+            "        click on APP_SWITCH\n"
+            "\n"
+            "    Ctrl+m\n"
+            "        click on MENU\n"
+            "\n"
+            "    " CTRL_OR_CMD "+Up\n"
+            "        click on VOLUME_UP\n"
+            "\n"
+            "    " CTRL_OR_CMD "+Down\n"
+            "        click on VOLUME_DOWN\n"
+            "\n"
+            "    " CTRL_OR_CMD "+p\n"
+            "        click on POWER (turn screen on/off)\n"
+            "\n"
+            "    Right-click (when screen is off)\n"
+            "        power on\n"
+            "\n"
+            "    " CTRL_OR_CMD "+o\n"
+            "        turn device screen off (keep mirroring)\n"
+            "\n"
+            "    " CTRL_OR_CMD "+r\n"
+            "        rotate device screen\n"
+            "\n"
+            "    " CTRL_OR_CMD "+n\n"
+            "       expand notification panel\n"
+            "\n"
+            "    " CTRL_OR_CMD "+Shift+n\n"
+            "       collapse notification panel\n"
+            "\n"
+            "    " CTRL_OR_CMD "+c\n"
+            "        copy device clipboard to computer\n"
+            "\n"
+            "    " CTRL_OR_CMD "+v\n"
+            "        paste computer clipboard to device\n"
+            "\n"
+            "    " CTRL_OR_CMD "+Shift+v\n"
+            "        copy computer clipboard to device\n"
+            "\n"
+            "    " CTRL_OR_CMD "+i\n"
+            "        enable/disable FPS counter (print frames/second in logs)\n"
+            "\n"
+            "    Drag & drop APK file\n"
+            "        install APK from computer\n"
+            "\n",
+            arg0,
+            DEFAULT_BIT_RATE,
+            DEFAULT_MAX_SIZE, DEFAULT_MAX_SIZE ? "" : " (unlimited)",
+            DEFAULT_LOCAL_PORT);
 }
 
 static bool
@@ -340,38 +348,42 @@ guess_record_format(const char *filename) {
 #define OPT_WINDOW_HEIGHT         1010
 #define OPT_WINDOW_BORDERLESS     1011
 #define OPT_MAX_FPS               1012
+#define OPT_SCREEN_WIDTH          1013
+#define OPT_SCREEN_HEIGHT         1014
 
 bool
 scrcpy_parse_args(struct scrcpy_cli_args *args, int argc, char *argv[]) {
     static const struct option long_options[] = {
-        {"always-on-top",         no_argument,       NULL, OPT_ALWAYS_ON_TOP},
-        {"bit-rate",              required_argument, NULL, 'b'},
-        {"crop",                  required_argument, NULL, OPT_CROP},
-        {"fullscreen",            no_argument,       NULL, 'f'},
-        {"help",                  no_argument,       NULL, 'h'},
-        {"max-fps",               required_argument, NULL, OPT_MAX_FPS},
-        {"max-size",              required_argument, NULL, 'm'},
-        {"no-control",            no_argument,       NULL, 'n'},
-        {"no-display",            no_argument,       NULL, 'N'},
-        {"port",                  required_argument, NULL, 'p'},
-        {"push-target",           required_argument, NULL, OPT_PUSH_TARGET},
-        {"record",                required_argument, NULL, 'r'},
-        {"record-format",         required_argument, NULL, OPT_RECORD_FORMAT},
-        {"render-expired-frames", no_argument,       NULL,
-                                                     OPT_RENDER_EXPIRED_FRAMES},
-        {"serial",                required_argument, NULL, 's'},
-        {"show-touches",          no_argument,       NULL, 't'},
-        {"turn-screen-off",       no_argument,       NULL, 'S'},
-        {"prefer-text",           no_argument,       NULL, OPT_PREFER_TEXT},
-        {"version",               no_argument,       NULL, 'v'},
-        {"window-title",          required_argument, NULL, OPT_WINDOW_TITLE},
-        {"window-x",              required_argument, NULL, OPT_WINDOW_X},
-        {"window-y",              required_argument, NULL, OPT_WINDOW_Y},
-        {"window-width",          required_argument, NULL, OPT_WINDOW_WIDTH},
-        {"window-height",         required_argument, NULL, OPT_WINDOW_HEIGHT},
-        {"window-borderless",     no_argument,       NULL,
-                                                     OPT_WINDOW_BORDERLESS},
-        {NULL,                    0,                 NULL, 0  },
+            {"always-on-top",         no_argument,       NULL, OPT_ALWAYS_ON_TOP},
+            {"bit-rate",              required_argument, NULL, 'b'},
+            {"crop",                  required_argument, NULL, OPT_CROP},
+            {"fullscreen",            no_argument,       NULL, 'f'},
+            {"help",                  no_argument,       NULL, 'h'},
+            {"max-fps",               required_argument, NULL, OPT_MAX_FPS},
+            {"max-size",              required_argument, NULL, 'm'},
+            {"no-control",            no_argument,       NULL, 'n'},
+            {"no-display",            no_argument,       NULL, 'N'},
+            {"port",                  required_argument, NULL, 'p'},
+            {"push-target",           required_argument, NULL, OPT_PUSH_TARGET},
+            {"record",                required_argument, NULL, 'r'},
+            {"record-format",         required_argument, NULL, OPT_RECORD_FORMAT},
+            {"render-expired-frames", no_argument,       NULL,
+                                                               OPT_RENDER_EXPIRED_FRAMES},
+            {"serial",                required_argument, NULL, 's'},
+            {"show-touches",          no_argument,       NULL, 't'},
+            {"turn-screen-off",       no_argument,       NULL, 'S'},
+            {"prefer-text",           no_argument,       NULL, OPT_PREFER_TEXT},
+            {"version",               no_argument,       NULL, 'v'},
+            {"window-title",          required_argument, NULL, OPT_WINDOW_TITLE},
+            {"window-x",              required_argument, NULL, OPT_WINDOW_X},
+            {"window-y",              required_argument, NULL, OPT_WINDOW_Y},
+            {"window-width",          required_argument, NULL, OPT_WINDOW_WIDTH},
+            {"window-height",         required_argument, NULL, OPT_WINDOW_HEIGHT},
+            {"screen-width",          required_argument, NULL, OPT_SCREEN_WIDTH},
+            {"screen-height",         required_argument, NULL, OPT_SCREEN_HEIGHT},
+            {"window-borderless",     no_argument,       NULL,
+                                                               OPT_WINDOW_BORDERLESS},
+            {NULL, 0,                                    NULL, 0},
     };
 
     struct scrcpy_options *opts = &args->opts;
@@ -472,6 +484,16 @@ scrcpy_parse_args(struct scrcpy_cli_args *args, int argc, char *argv[]) {
                 break;
             case OPT_WINDOW_HEIGHT:
                 if (!parse_window_dimension(optarg, &opts->window_height)) {
+                    return false;
+                }
+                break;
+            case OPT_SCREEN_WIDTH:
+                if (!parse_window_dimension(optarg, &opts->screen_width)) {
+                    return false;
+                }
+                break;
+            case OPT_SCREEN_HEIGHT:
+                if (!parse_window_dimension(optarg, &opts->screen_height)) {
                     return false;
                 }
                 break;
