@@ -99,8 +99,8 @@ control_msg_deserialize(const unsigned char *buf, size_t len,
     switch (msg->type) {
 
         default:
-            LOGW("Unknown device message type: %d", (int) msg->type);
-            return -1; // error, we cannot recover
+            LOGW("Unknown control message type: %d", (int) msg->type);
+            return 0; // error, we cannot recover
     }
 }
 

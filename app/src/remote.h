@@ -14,6 +14,7 @@ struct remote {
     socket_t control_socket;
     SDL_Thread *thread;
     SDL_mutex *mutex;
+
 };
 
 bool

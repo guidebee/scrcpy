@@ -7,14 +7,14 @@
 #include "util/log.h"
 
 bool
-controller_init(struct controller *controller, socket_t control_socket) {
+controller_init(struct controller *controller, socket_t control_socket,socket_t remote_control_socket) {
     cbuf_init(&controller->queue);
 
     if (!receiver_init(&controller->receiver, control_socket)) {
         return false;
     }
 
-    if (!remote_init(&controller->remote, control_socket)) {
+    if (!remote_init(&controller->remote, remote_control_socket)) {
         return false;
     }
 
@@ -49,6 +49,7 @@ controller_destroy(struct controller *controller) {
 
     receiver_destroy(&controller->receiver);
     remote_destroy(&controller->remote);
+
 }
 
 bool

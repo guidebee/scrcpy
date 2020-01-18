@@ -259,6 +259,14 @@ server_start(struct server *server, const char *serial,
         }
     }
 
+    server->remote_server_socket = listen_on_port(params->local_port+1);
+    if (server->remote_server_socket == INVALID_SOCKET) {
+        LOGE("Could not listen on remote control port %" PRIu16, params->local_port+1);
+        disable_tunnel(server);
+        SDL_free(server->serial);
+        return false;
+    }
+
     // server will connect to our server socket
     server->process = execute_server(server, params);
 
@@ -346,4 +354,7 @@ server_stop(struct server *server) {
 void
 server_destroy(struct server *server) {
     SDL_free(server->serial);
+    if (server->remote_server_socket != INVALID_SOCKET) {
+        close_socket(&server->remote_server_socket);
+    }
 }

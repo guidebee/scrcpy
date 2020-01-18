@@ -1,12 +1,30 @@
 #include "remote.h"
 
 #include <assert.h>
-#include <SDL2/SDL_clipboard.h>
+
 
 #include "config.h"
 #include "control_msg.h"
 #include "util/lock.h"
 #include "util/log.h"
+#include "util/net.h"
+
+//#define IPV4_LOCALHOST 0x7F000001
+//static socket_t
+//listen_on_port(uint16_t port) {
+//    return net_listen(IPV4_LOCALHOST, port, 1);
+//}
+//static void
+//close_socket(socket_t *socket) {
+//    assert(*socket != INVALID_SOCKET);
+//    net_shutdown(*socket, SHUT_RDWR);
+//    if (!net_close(*socket)) {
+//        LOGW("Could not close socket");
+//        return;
+//    }
+//    *socket = INVALID_SOCKET;
+//}
+
 
 bool
 remote_init(struct remote *remote, socket_t control_socket) {
@@ -17,9 +35,23 @@ remote_init(struct remote *remote, socket_t control_socket) {
     return true;
 }
 
+//bool remote_reboot_client_socket(struct remote *remote){
+//    if (remote->remote_client_socket != INVALID_SOCKET) {
+//        close_socket(&remote->remote_client_socket);
+//
+//    }
+//    remote->remote_client_socket = net_accept(remote->control_socket);
+//    if (remote->remote_client_socket == INVALID_SOCKET) {
+//        return 0;
+//    }
+//    return 1;
+//}
+
 void
 remote_destroy(struct remote *remote) {
     SDL_DestroyMutex(remote->mutex);
+
+
 }
 
 static void
@@ -64,12 +96,18 @@ run_remote(void *data) {
     unsigned char buf[CONTROL_MSG_SERIALIZED_MAX_SIZE];
     size_t head = 0;
 
+    socket_t remote_client_socket = net_accept(remote->control_socket);
+    if (remote_client_socket == INVALID_SOCKET) {
+
+        return 0;
+    }
+
     for (;;) {
         assert(head < CONTROL_MSG_SERIALIZED_MAX_SIZE);
-        ssize_t r = net_recv(remote->control_socket, buf,
+        ssize_t r = net_recv(remote_client_socket, buf,
                              CONTROL_MSG_SERIALIZED_MAX_SIZE - head);
-        if (r <= 0) {
-            LOGD("Remote stopped");
+        if (r <= 0 ) {
+            LOGD("Remote Stopped");
             break;
         }
 
