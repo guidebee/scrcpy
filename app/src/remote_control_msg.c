@@ -1,5 +1,5 @@
 #include "remote_control_msg.h"
-
+#include "control_msg.h"
 #include <assert.h>
 #include <string.h>
 
@@ -154,7 +154,7 @@ static void process_value(json_value* value, int depth)
 
 size_t
 remote_control_msg_deserialize(const unsigned char *buf, size_t len,
-                               struct remote_control_msg *msg) {
+                               struct control_msg *msg) {
     if (len < 3) {
         // at least type + empty string length
         return 0; // not available
@@ -189,17 +189,3 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
     }
 }
 
-void
-remote_control_msg_destroy(struct remote_control_msg *msg) {
-    switch (msg->type) {
-        case REMOTE_CONTROL_MSG_TYPE_INJECT_TEXT:
-            SDL_free(msg->inject_text.text);
-            break;
-        case REMOTE_CONTROL_MSG_TYPE_SET_CLIPBOARD:
-            SDL_free(msg->set_clipboard.text);
-            break;
-        default:
-            // do nothing
-            break;
-    }
-}

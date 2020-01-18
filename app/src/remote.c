@@ -5,6 +5,7 @@
 
 #include "config.h"
 #include "remote_control_msg.h"
+#include "control_msg.h"
 #include "util/lock.h"
 #include "util/log.h"
 #include "util/net.h"
@@ -58,7 +59,7 @@ remote_destroy(struct remote *remote) {
 }
 
 static void
-process_msg(struct remote_control_msg *msg) {
+process_msg(struct control_msg *msg) {
 //    switch (msg->type) {
 //        case DEVICE_MSG_TYPE_CLIPBOARD:
 //            
@@ -72,7 +73,7 @@ static ssize_t
 process_msgs(const unsigned char *buf, size_t len) {
     size_t head = 0;
     for (;;) {
-        struct remote_control_msg msg;
+        struct control_msg msg;
         ssize_t r = remote_control_msg_deserialize(&buf[head], len - head, &msg);
         if (r == -1) {
             return -1;
@@ -82,7 +83,7 @@ process_msgs(const unsigned char *buf, size_t len) {
         }
 
         process_msg(&msg);
-        remote_control_msg_destroy(&msg);
+        control_msg_destroy(&msg);
 
         head += r;
         assert(head <= len);
@@ -96,7 +97,7 @@ static int
 run_remote(void *data) {
     struct remote *remote = data;
 
-    unsigned char buf[REMOTE_CONTROL_MSG_SERIALIZED_MAX_SIZE];
+    unsigned char buf[CONTROL_MSG_SERIALIZED_MAX_SIZE];
     size_t head = 0;
 
     remote->remote_client_socket = net_accept(remote->control_socket);
@@ -106,9 +107,9 @@ run_remote(void *data) {
     }
 
     for (;;) {
-        assert(head < REMOTE_CONTROL_MSG_SERIALIZED_MAX_SIZE);
+        assert(head < CONTROL_MSG_SERIALIZED_MAX_SIZE);
         ssize_t r = net_recv(remote->remote_client_socket, buf,
-                             REMOTE_CONTROL_MSG_SERIALIZED_MAX_SIZE - head);
+                             CONTROL_MSG_SERIALIZED_MAX_SIZE - head);
         if (r <= 0 ) {
 
             remote->remote_client_socket=INVALID_SOCKET;
