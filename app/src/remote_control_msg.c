@@ -68,12 +68,12 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
             msg->type = CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL;
         } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL") == 0) {
             msg->type = CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL;
-        } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_GET_CLIPBOARD") == 0) {
-            msg->type = CONTROL_MSG_TYPE_GET_CLIPBOARD;
-        } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_SET_CLIPBOARD") == 0) {
-            msg->type = CONTROL_MSG_TYPE_SET_CLIPBOARD;
-        } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE") == 0) {
-            msg->type = CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE;
+//        } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_GET_CLIPBOARD") == 0) {
+//            msg->type = CONTROL_MSG_TYPE_GET_CLIPBOARD;
+//        } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_SET_CLIPBOARD") == 0) {
+//            msg->type = CONTROL_MSG_TYPE_SET_CLIPBOARD;
+//        } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE") == 0) {
+//            msg->type = CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE;
         } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_ROTATE_DEVICE") == 0) {
             msg->type = CONTROL_MSG_TYPE_ROTATE_DEVICE;
         } else /* default: */
@@ -86,25 +86,68 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
 
             case CONTROL_MSG_TYPE_INJECT_KEYCODE:
                 LOGD("CONTROL_MSG_TYPE_INJECT_KEYCODE: %d", (int) msg->type);
+                {
+                    json_value *key_code = get_key_object(value, "key_code");
+                    msg->inject_keycode.action = get_key_object(key_code, "action")->u.integer;
+                    msg->inject_keycode.keycode = get_key_object(key_code, "key_code")->u.integer;
+                    msg->inject_keycode.metastate = get_key_object(key_code, "meta_state")->u.integer;
+                }
                 break;
             case CONTROL_MSG_TYPE_INJECT_TEXT:
                 LOGD("CONTROL_MSG_TYPE_INJECT_TEXT: %d", (int) msg->type);
-                json_value *inject_text=get_key_object(value,"inject_text");
-                if (inject_text!=NULL) {
-                    char *message = get_key_value(inject_text,"text");
-                    int clipboard_len = strlen(message);
-                    char *text = SDL_malloc(clipboard_len + 1);
-                    memcpy(text, message, clipboard_len);
-                    text[clipboard_len] = '\0';
-                    msg->inject_text.text = text;
+                {
+                    json_value *inject_text = get_key_object(value, "inject_text");
+                    if (inject_text != NULL) {
+                        char *message = get_key_value(inject_text, "text");
+                        int clipboard_len = strlen(message);
+                        char *text = SDL_malloc(clipboard_len + 1);
+                        memcpy(text, message, clipboard_len);
+                        text[clipboard_len] = '\0';
+                        msg->inject_text.text = text;
+                    }
                 }
                 break;
             case CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT:
-                LOGW("CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT: %d", (int) msg->type);
+                {
+                    json_value *touch_event = get_key_object(value, "touch_event");
+                    msg->inject_touch_event.action = get_key_object(touch_event, "action")->u.integer;
+                    msg->inject_touch_event.buttons = get_key_object(touch_event, "buttons")->u.integer;
+                    msg->inject_touch_event.pointer_id = get_key_object(touch_event, "pointer")->u.integer;
+                    msg->inject_touch_event.pressure = get_key_object(touch_event, "pointer")->u.dbl;
+                    json_value *position = get_key_object(touch_event, "position");
+                    json_value *screen_size = get_key_object(position, "screen_size");
+                    msg->inject_touch_event.position.screen_size.width = get_key_object(screen_size,
+                                                                                        "width")->u.integer;
+                    msg->inject_touch_event.position.screen_size.height = get_key_object(screen_size,
+                                                                                         "height")->u.integer;
+                    json_value *point = get_key_object(position, "point");
+                    msg->inject_touch_event.position.point.x = get_key_object(point,
+                                                                              "x")->u.integer;
+                    msg->inject_touch_event.position.point.y = get_key_object(point,
+                                                                              "y")->u.integer;
+                }
 
                 break;
             case CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT:
-                LOGW("CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT: %d", (int) msg->type);
+                {
+                    json_value *scroll_event = get_key_object(value, "scroll_event");
+                    json_value *position = get_key_object(scroll_event, "position");
+                    json_value *screen_size = get_key_object(position, "screen_size");
+                    msg->inject_scroll_event.position.screen_size.width = get_key_object(screen_size,
+                                                                                        "width")->u.integer;
+                    msg->inject_scroll_event.position.screen_size.height = get_key_object(screen_size,
+                                                                                         "height")->u.integer;
+                    json_value *point = get_key_object(position, "point");
+                    msg->inject_scroll_event.position.point.x = get_key_object(point,
+                                                                              "x")->u.integer;
+                    msg->inject_scroll_event.position.point.y = get_key_object(point,
+                                                                              "y")->u.integer;
+                    msg->inject_scroll_event.hscroll=get_key_object(scroll_event, "h_scroll")->u.integer;
+                    msg->inject_scroll_event.vscroll=get_key_object(scroll_event, "v_scroll")->u.integer;
+                }
+
                 break;
             case CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON:
                 LOGW("CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON: %d", (int) msg->type);
