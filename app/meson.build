@@ -22,6 +22,7 @@ src = [
     'src/tiny_xpm.c',
     'src/video_buffer.c',
     'src/util/net.c',
+    'src/util/json.c',
     'src/util/str_util.c'
 ]
 

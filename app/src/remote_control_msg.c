@@ -7,93 +7,178 @@
 #include "util/buffer_util.h"
 #include "util/log.h"
 #include "util/str_util.h"
+#include "util/json.h"
 
-static void
-write_position(uint8_t *buf, const struct position *position) {
-    buffer_write32be(&buf[0], position->point.x);
-    buffer_write32be(&buf[4], position->point.y);
-    buffer_write16be(&buf[8], position->screen_size.width);
-    buffer_write16be(&buf[10], position->screen_size.height);
-}
 
-// write length (2 bytes) + string (non nul-terminated)
-static size_t
-write_string(const char *utf8, size_t max_len, unsigned char *buf) {
-    size_t len = utf8_truncation_index(utf8, max_len);
-    buffer_write16be(buf, (uint16_t) len);
-    memcpy(&buf[2], utf8, len);
-    return 2 + len;
-}
 
-static uint16_t
-to_fixed_point_16(float f) {
-    assert(f >= 0.0f && f <= 1.0f);
-    uint32_t u = f * 0x1p16f; // 2^16
-    if (u >= 0xffff) {
-        u = 0xffff;
+char *my_str = "{ \
+'glossary': { \
+'title': 'example glossary', \
+'GlossDiv': { \
+'title': 'S', \
+'GlossList': { \
+'GlossEntry': { \
+'ID': 'SGML', \
+'SortAs': 'SGML', \
+'GlossTerm': 'Standard Generalized Markup Language', \
+'Acronym': 'SGML', \
+'Abbrev': 'ISO 8879:1986', \
+'GlossDef': { \
+'para': 'A meta-markup language, used to create markup languages such as DocBook.', \
+'GlossSeeAlso': ['GML', 'XML'] \
+}, \
+'GlossSee': 'markup' \
+} \
+} \
+} \
+} \
+}";
+
+// You must free the result if result is non-NULL.
+char *str_replace(char *orig, char *rep, char *with) {
+    char *result; // the return string
+    char *ins;    // the next insert point
+    char *tmp;    // varies
+    int len_rep;  // length of rep (the string to remove)
+    int len_with; // length of with (the string to replace rep with)
+    int len_front; // distance between rep and end of last rep
+    int count;    // number of replacements
+
+    // sanity checks and initialization
+    if (!orig || !rep)
+        return NULL;
+    len_rep = strlen(rep);
+    if (len_rep == 0)
+        return NULL; // empty rep causes infinite loop during count
+    if (!with)
+        with = "";
+    len_with = strlen(with);
+
+    // count the number of replacements needed
+    ins = orig;
+    for (count = 0; tmp = strstr(ins, rep); ++count) {
+        ins = tmp + len_rep;
     }
-    return (uint16_t) u;
+
+    tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+
+    if (!result)
+        return NULL;
+
+    // first time through the loop, all the variable are set correctly
+    // from here on,
+    //    tmp points to the end of the result string
+    //    ins points to the next occurrence of rep in orig
+    //    orig points to the remainder of orig after "end of rep"
+    while (count--) {
+        ins = strstr(orig, rep);
+        len_front = ins - orig;
+        tmp = strncpy(tmp, orig, len_front) + len_front;
+        tmp = strcpy(tmp, with) + len_with;
+        orig += len_front + len_rep; // move to next "end of rep"
+    }
+    strcpy(tmp, orig);
+    return result;
 }
 
-size_t
-remote_control_msg_serialize(const struct remote_control_msg *msg, unsigned char *buf) {
-    buf[0] = msg->type;
-    switch (msg->type) {
-        case REMOTE_CONTROL_MSG_TYPE_INJECT_KEYCODE:
-            buf[1] = msg->inject_keycode.action;
-            buffer_write32be(&buf[2], msg->inject_keycode.keycode);
-            buffer_write32be(&buf[6], msg->inject_keycode.metastate);
-            return 10;
-        case REMOTE_CONTROL_MSG_TYPE_INJECT_TEXT: {
-            size_t len = write_string(msg->inject_text.text,
-                                      REMOTE_CONTROL_MSG_TEXT_MAX_LENGTH, &buf[1]);
-            return 1 + len;
-        }
-        case REMOTE_CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT:
-            buf[1] = msg->inject_touch_event.action;
-            buffer_write64be(&buf[2], msg->inject_touch_event.pointer_id);
-            write_position(&buf[10], &msg->inject_touch_event.position);
-            uint16_t pressure =
-                    to_fixed_point_16(msg->inject_touch_event.pressure);
-            buffer_write16be(&buf[22], pressure);
-            buffer_write32be(&buf[24], msg->inject_touch_event.buttons);
-            return 28;
-        case REMOTE_CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT:
-            write_position(&buf[1], &msg->inject_scroll_event.position);
-            buffer_write32be(&buf[13],
-                             (uint32_t) msg->inject_scroll_event.hscroll);
-            buffer_write32be(&buf[17],
-                             (uint32_t) msg->inject_scroll_event.vscroll);
-            return 21;
-        case REMOTE_CONTROL_MSG_TYPE_SET_CLIPBOARD: {
-            size_t len = write_string(msg->inject_text.text,
-                                      REMOTE_CONTROL_MSG_CLIPBOARD_TEXT_MAX_LENGTH,
-                                      &buf[1]);
-            return 1 + len;
-        }
-        case REMOTE_CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE:
-            buf[1] = msg->set_screen_power_mode.mode;
-            return 2;
-        case REMOTE_CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON:
-        case REMOTE_CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL:
-        case REMOTE_CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL:
-        case REMOTE_CONTROL_MSG_TYPE_GET_CLIPBOARD:
-        case REMOTE_CONTROL_MSG_TYPE_ROTATE_DEVICE:
-            // no additional data
-            return 1;
-        default:
-            LOGW("Unknown remote control message type: %u", (unsigned) msg->type);
-            return 0;
+static void print_depth_shift(int depth)
+{
+    int j;
+    for (j=0; j < depth; j++) {
+        printf(" ");
+    }
+}
+
+static void process_value(json_value* value, int depth);
+
+static void process_object(json_value* value, int depth)
+{
+    int length, x;
+    if (value == NULL) {
+        return;
+    }
+    length = value->u.object.length;
+    for (x = 0; x < length; x++) {
+        print_depth_shift(depth);
+        printf("object[%d].name = %s\n", x, value->u.object.values[x].name);
+        process_value(value->u.object.values[x].value, depth+1);
+    }
+}
+
+static void process_array(json_value* value, int depth)
+{
+    int length, x;
+    if (value == NULL) {
+        return;
+    }
+    length = value->u.array.length;
+    printf("array\n");
+    for (x = 0; x < length; x++) {
+        process_value(value->u.array.values[x], depth);
+    }
+}
+
+static void process_value(json_value* value, int depth)
+{
+    int j;
+    if (value == NULL) {
+        return;
+    }
+    if (value->type != json_object) {
+        print_depth_shift(depth);
+    }
+    switch (value->type) {
+        case json_none:
+            printf("none\n");
+            break;
+        case json_object:
+            process_object(value, depth+1);
+            break;
+        case json_array:
+            process_array(value, depth+1);
+            break;
+        case json_integer:
+            printf("int: %10" PRId64 "\n", value->u.integer);
+            break;
+        case json_double:
+            printf("double: %f\n", value->u.dbl);
+            break;
+        case json_string:
+            printf("string: %s\n", value->u.string.ptr);
+            break;
+        case json_boolean:
+            printf("bool: %d\n", value->u.boolean);
+            break;
     }
 }
 
 size_t
 remote_control_msg_deserialize(const unsigned char *buf, size_t len,
-                        struct remote_control_msg *msg) {
+                               struct remote_control_msg *msg) {
     if (len < 3) {
         // at least type + empty string length
         return 0; // not available
     }
+
+    char *rep="'";
+    char *with="\"";
+
+    char *json_str = str_replace(my_str,rep,with);
+
+
+
+    json_value *json_obj=json_parse(json_str,strlen(json_str));
+
+
+    if (json_obj!=NULL){
+        process_value(json_obj, 0);
+    }else{
+        LOGI("NULL json obj");
+    }
+
+
+    json_value_free (json_obj);
+    free(json_str);
 
     msg->type = buf[0];
     switch (msg->type) {
