@@ -1,2 +1,0 @@
-set(CMAKE_HOST_SYSTEM_NAME "Linux")
-set(CMAKE_SYSTEM_NAME "Linux")

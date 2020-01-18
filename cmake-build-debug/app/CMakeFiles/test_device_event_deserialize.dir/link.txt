@@ -1,2 +1,0 @@
-/usr/bin/ar qc test_device_event_deserialize /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_device_event_deserialize@exe/test_device_msg_deserialize.c.o /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_device_event_deserialize@exe/device_msg.c.o 
-/usr/bin/ranlib test_device_event_deserialize

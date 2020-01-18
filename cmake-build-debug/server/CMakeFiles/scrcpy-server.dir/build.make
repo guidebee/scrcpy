@@ -1,1 +1,0 @@
-/Users/james/Workspace/scrcpy/cmake-build-debug/server/CMakeFiles/scrcpy-server.dir/build: /Users/james/Workspace/scrcpy/cmake-build-debug/server/scrcpy-server

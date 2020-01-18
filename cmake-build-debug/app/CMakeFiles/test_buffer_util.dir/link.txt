@@ -1,2 +1,0 @@
-/usr/bin/ar qc test_buffer_util /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_buffer_util@exe/test_buffer_util.c.o 
-/usr/bin/ranlib test_buffer_util

@@ -1,2 +1,0 @@
-/usr/bin/ar qc scrcpy-server 
-/usr/bin/ranlib scrcpy-server

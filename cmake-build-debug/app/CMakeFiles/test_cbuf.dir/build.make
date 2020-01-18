@@ -1,1 +1,0 @@
-/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_cbuf.dir/build: /Users/james/Workspace/scrcpy/cmake-build-debug/app/test_cbuf
