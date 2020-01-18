@@ -1,5 +1,5 @@
-#ifndef CONTROLMSG_H
-#define CONTROLMSG_H
+#ifndef REMOTECONTROLMSG_H
+#define REMOTECONTROLMSG_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -10,35 +10,35 @@
 #include "android/keycodes.h"
 #include "common.h"
 
-#define CONTROL_MSG_TEXT_MAX_LENGTH 300
-#define CONTROL_MSG_CLIPBOARD_TEXT_MAX_LENGTH 4093
-#define CONTROL_MSG_SERIALIZED_MAX_SIZE \
-    (3 + CONTROL_MSG_CLIPBOARD_TEXT_MAX_LENGTH)
+#define REMOTE_CONTROL_MSG_TEXT_MAX_LENGTH 300
+#define REMOTE_CONTROL_MSG_CLIPBOARD_TEXT_MAX_LENGTH 4093
+#define REMOTE_CONTROL_MSG_SERIALIZED_MAX_SIZE \
+    (3 + REMOTE_CONTROL_MSG_CLIPBOARD_TEXT_MAX_LENGTH)
 
 #define POINTER_ID_MOUSE UINT64_C(-1);
 
-enum control_msg_type {
-    CONTROL_MSG_TYPE_INJECT_KEYCODE,
-    CONTROL_MSG_TYPE_INJECT_TEXT,
-    CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT,
-    CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT,
-    CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON,
-    CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL,
-    CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL,
-    CONTROL_MSG_TYPE_GET_CLIPBOARD,
-    CONTROL_MSG_TYPE_SET_CLIPBOARD,
-    CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE,
-    CONTROL_MSG_TYPE_ROTATE_DEVICE,
+enum remote_control_msg_type {
+    REMOTE_CONTROL_MSG_TYPE_INJECT_KEYCODE,
+    REMOTE_CONTROL_MSG_TYPE_INJECT_TEXT,
+    REMOTE_CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT,
+    REMOTE_CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT,
+    REMOTE_CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON,
+    REMOTE_CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL,
+    REMOTE_CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL,
+    REMOTE_CONTROL_MSG_TYPE_GET_CLIPBOARD,
+    REMOTE_CONTROL_MSG_TYPE_SET_CLIPBOARD,
+    REMOTE_CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE,
+    REMOTE_CONTROL_MSG_TYPE_ROTATE_DEVICE,
 };
 
 enum screen_power_mode {
     // see <https://android.googlesource.com/platform/frameworks/base.git/+/pie-release-2/core/java/android/view/SurfaceControl.java#305>
-    SCREEN_POWER_MODE_OFF = 0,
+            SCREEN_POWER_MODE_OFF = 0,
     SCREEN_POWER_MODE_NORMAL = 2,
 };
 
-struct control_msg {
-    enum control_msg_type type;
+struct remote_control_msg {
+    enum remote_control_msg_type type;
     union {
         struct {
             enum android_keyevent_action action;
@@ -69,13 +69,15 @@ struct control_msg {
     };
 };
 
-// buf size must be at least CONTROL_MSG_SERIALIZED_MAX_SIZE
+// buf size must be at least REMOTE_CONTROL_MSG_SERIALIZED_MAX_SIZE
 // return the number of bytes written
 size_t
-control_msg_serialize(const struct control_msg *msg, unsigned char *buf);
+remote_control_msg_serialize(const struct remote_control_msg *msg, unsigned char *buf);
 
-
+size_t
+remote_control_msg_deserialize(const unsigned char *buf, size_t len,
+                        struct remote_control_msg *msg);
 void
-control_msg_destroy(struct control_msg *msg);
+remote_control_msg_destroy(struct remote_control_msg *msg);
 
 #endif

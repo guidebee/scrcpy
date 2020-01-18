@@ -3,6 +3,7 @@ src = [
     'src/cli.c',
     'src/command.c',
     'src/control_msg.c',
+    'src/remote_control_msg.c',
     'src/controller.c',
     'src/decoder.c',
     'src/device.c',

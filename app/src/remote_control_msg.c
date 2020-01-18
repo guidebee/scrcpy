@@ -1,4 +1,4 @@
-#include "control_msg.h"
+#include "remote_control_msg.h"
 
 #include <assert.h>
 #include <string.h>
@@ -36,65 +36,81 @@ to_fixed_point_16(float f) {
 }
 
 size_t
-control_msg_serialize(const struct control_msg *msg, unsigned char *buf) {
+remote_control_msg_serialize(const struct remote_control_msg *msg, unsigned char *buf) {
     buf[0] = msg->type;
     switch (msg->type) {
-        case CONTROL_MSG_TYPE_INJECT_KEYCODE:
+        case REMOTE_CONTROL_MSG_TYPE_INJECT_KEYCODE:
             buf[1] = msg->inject_keycode.action;
             buffer_write32be(&buf[2], msg->inject_keycode.keycode);
             buffer_write32be(&buf[6], msg->inject_keycode.metastate);
             return 10;
-        case CONTROL_MSG_TYPE_INJECT_TEXT: {
+        case REMOTE_CONTROL_MSG_TYPE_INJECT_TEXT: {
             size_t len = write_string(msg->inject_text.text,
-                                      CONTROL_MSG_TEXT_MAX_LENGTH, &buf[1]);
+                                      REMOTE_CONTROL_MSG_TEXT_MAX_LENGTH, &buf[1]);
             return 1 + len;
         }
-        case CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT:
+        case REMOTE_CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT:
             buf[1] = msg->inject_touch_event.action;
             buffer_write64be(&buf[2], msg->inject_touch_event.pointer_id);
             write_position(&buf[10], &msg->inject_touch_event.position);
             uint16_t pressure =
-                to_fixed_point_16(msg->inject_touch_event.pressure);
+                    to_fixed_point_16(msg->inject_touch_event.pressure);
             buffer_write16be(&buf[22], pressure);
             buffer_write32be(&buf[24], msg->inject_touch_event.buttons);
             return 28;
-        case CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT:
+        case REMOTE_CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT:
             write_position(&buf[1], &msg->inject_scroll_event.position);
             buffer_write32be(&buf[13],
                              (uint32_t) msg->inject_scroll_event.hscroll);
             buffer_write32be(&buf[17],
                              (uint32_t) msg->inject_scroll_event.vscroll);
             return 21;
-        case CONTROL_MSG_TYPE_SET_CLIPBOARD: {
+        case REMOTE_CONTROL_MSG_TYPE_SET_CLIPBOARD: {
             size_t len = write_string(msg->inject_text.text,
-                                      CONTROL_MSG_CLIPBOARD_TEXT_MAX_LENGTH,
+                                      REMOTE_CONTROL_MSG_CLIPBOARD_TEXT_MAX_LENGTH,
                                       &buf[1]);
             return 1 + len;
         }
-        case CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE:
+        case REMOTE_CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE:
             buf[1] = msg->set_screen_power_mode.mode;
             return 2;
-        case CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON:
-        case CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL:
-        case CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL:
-        case CONTROL_MSG_TYPE_GET_CLIPBOARD:
-        case CONTROL_MSG_TYPE_ROTATE_DEVICE:
+        case REMOTE_CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON:
+        case REMOTE_CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL:
+        case REMOTE_CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL:
+        case REMOTE_CONTROL_MSG_TYPE_GET_CLIPBOARD:
+        case REMOTE_CONTROL_MSG_TYPE_ROTATE_DEVICE:
             // no additional data
             return 1;
         default:
-            LOGW("Unknown message type: %u", (unsigned) msg->type);
+            LOGW("Unknown remote control message type: %u", (unsigned) msg->type);
             return 0;
     }
 }
 
+size_t
+remote_control_msg_deserialize(const unsigned char *buf, size_t len,
+                        struct remote_control_msg *msg) {
+    if (len < 3) {
+        // at least type + empty string length
+        return 0; // not available
+    }
+
+    msg->type = buf[0];
+    switch (msg->type) {
+
+        default:
+            LOGW("Unknown remote control message type: %d", (int) msg->type);
+            return 0; // error, we cannot recover
+    }
+}
 
 void
-control_msg_destroy(struct control_msg *msg) {
+remote_control_msg_destroy(struct remote_control_msg *msg) {
     switch (msg->type) {
-        case CONTROL_MSG_TYPE_INJECT_TEXT:
+        case REMOTE_CONTROL_MSG_TYPE_INJECT_TEXT:
             SDL_free(msg->inject_text.text);
             break;
-        case CONTROL_MSG_TYPE_SET_CLIPBOARD:
+        case REMOTE_CONTROL_MSG_TYPE_SET_CLIPBOARD:
             SDL_free(msg->set_clipboard.text);
             break;
         default:
