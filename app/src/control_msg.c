@@ -87,6 +87,23 @@ control_msg_serialize(const struct control_msg *msg, unsigned char *buf) {
     }
 }
 
+size_t
+control_msg_deserialize(const unsigned char *buf, size_t len,
+                       struct control_msg *msg) {
+    if (len < 3) {
+        // at least type + empty string length
+        return 0; // not available
+    }
+
+    msg->type = buf[0];
+    switch (msg->type) {
+
+        default:
+            LOGW("Unknown device message type: %d", (int) msg->type);
+            return -1; // error, we cannot recover
+    }
+}
+
 void
 control_msg_destroy(struct control_msg *msg) {
     switch (msg->type) {

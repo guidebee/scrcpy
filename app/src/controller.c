@@ -14,13 +14,19 @@ controller_init(struct controller *controller, socket_t control_socket) {
         return false;
     }
 
+    if (!remote_init(&controller->remote, control_socket)) {
+        return false;
+    }
+
     if (!(controller->mutex = SDL_CreateMutex())) {
         receiver_destroy(&controller->receiver);
+        remote_destroy(&controller->remote);
         return false;
     }
 
     if (!(controller->msg_cond = SDL_CreateCond())) {
         receiver_destroy(&controller->receiver);
+        remote_destroy(&controller->remote);
         SDL_DestroyMutex(controller->mutex);
         return false;
     }
@@ -42,6 +48,7 @@ controller_destroy(struct controller *controller) {
     }
 
     receiver_destroy(&controller->receiver);
+    remote_destroy(&controller->remote);
 }
 
 bool
@@ -116,6 +123,12 @@ controller_start(struct controller *controller) {
         return false;
     }
 
+    if (!remote_start(&controller->remote)) {
+        controller_stop(controller);
+        SDL_WaitThread(controller->thread, NULL);
+        return false;
+    }
+
     return true;
 }
 
@@ -131,4 +144,5 @@ void
 controller_join(struct controller *controller) {
     SDL_WaitThread(controller->thread, NULL);
     receiver_join(&controller->receiver);
+    remote_join(&controller->remote);
 }

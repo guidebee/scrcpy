@@ -8,6 +8,7 @@
 #include "config.h"
 #include "control_msg.h"
 #include "receiver.h"
+#include "remote.h"
 #include "util/cbuf.h"
 #include "util/net.h"
 
@@ -21,6 +22,7 @@ struct controller {
     bool stopped;
     struct control_msg_queue queue;
     struct receiver receiver;
+    struct remote remote;
 };
 
 bool

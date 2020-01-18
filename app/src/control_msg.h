@@ -74,6 +74,9 @@ struct control_msg {
 size_t
 control_msg_serialize(const struct control_msg *msg, unsigned char *buf);
 
+size_t
+control_msg_deserialize(const unsigned char *buf, size_t len,
+                       struct control_msg *msg);
 void
 control_msg_destroy(struct control_msg *msg);
 

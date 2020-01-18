@@ -12,6 +12,7 @@ src = [
     'src/fps_counter.c',
     'src/input_manager.c',
     'src/receiver.c',
+    'src/remote.c',
     'src/recorder.c',
     'src/scrcpy.c',
     'src/screen.c',
