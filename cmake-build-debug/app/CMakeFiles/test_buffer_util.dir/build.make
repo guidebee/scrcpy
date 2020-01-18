@@ -1,0 +1,1 @@
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_buffer_util.dir/build: /Users/james/Workspace/scrcpy/cmake-build-debug/app/test_buffer_util

@@ -42,6 +42,8 @@ parse_integer_with_suffix(const char *s, long *out);
 size_t
 utf8_truncation_index(const char *utf8, size_t max_len);
 
+char *str_replace(char *orig, char *rep, char *with);
+
 #ifdef _WIN32
 // convert a UTF-8 string to a wchar_t string
 // returns the new allocated string, to be freed by the caller

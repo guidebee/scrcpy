@@ -1,0 +1,2 @@
+/usr/bin/ar qc test_cli /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_cli@exe/test_cli.c.o /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_cli@exe/cli.c.o /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_cli@exe/str_util.c.o 
+/usr/bin/ranlib test_cli

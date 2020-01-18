@@ -1,0 +1,2 @@
+/usr/bin/ar qc run 
+/usr/bin/ranlib run

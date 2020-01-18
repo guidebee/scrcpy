@@ -274,6 +274,14 @@ void json_value_free_ex (json_settings * settings,
                          json_value *);
 
 
+void print_depth_shift(int depth);
+
+void process_value(json_value *value, int depth);
+
+void process_object(json_value *value, int depth);
+
+void process_array(json_value *value, int depth);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

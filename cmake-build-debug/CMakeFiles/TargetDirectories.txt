@@ -1,0 +1,10 @@
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/scrcpy.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_buffer_util.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_cbuf.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_cli.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_control_event_serialize.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_device_event_deserialize.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_queue.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_strutil.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/server/CMakeFiles/scrcpy-server.dir
+/Users/james/Workspace/scrcpy/cmake-build-debug/CMakeFiles/run.dir

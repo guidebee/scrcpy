@@ -1,0 +1,2 @@
+/usr/bin/ar qc test_queue /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_queue@exe/test_queue.c.o 
+/usr/bin/ranlib test_queue

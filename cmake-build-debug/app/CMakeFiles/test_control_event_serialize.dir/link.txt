@@ -1,0 +1,2 @@
+/usr/bin/ar qc test_control_event_serialize /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_control_event_serialize@exe/test_control_msg_serialize.c.o /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_control_event_serialize@exe/control_msg.c.o /Users/james/Workspace/scrcpy/cmake-build-debug/app/a172ced@@test_control_event_serialize@exe/str_util.c.o 
+/usr/bin/ranlib test_control_event_serialize

@@ -1,0 +1,1 @@
+set(CMAKE_C_COMPILER "/usr/bin/cc")

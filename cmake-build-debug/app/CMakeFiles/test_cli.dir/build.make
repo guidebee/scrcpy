@@ -1,0 +1,1 @@
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_cli.dir/build: /Users/james/Workspace/scrcpy/cmake-build-debug/app/test_cli

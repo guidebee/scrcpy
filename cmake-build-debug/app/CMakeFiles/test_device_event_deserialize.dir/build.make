@@ -1,0 +1,1 @@
+/Users/james/Workspace/scrcpy/cmake-build-debug/app/CMakeFiles/test_device_event_deserialize.dir/build: /Users/james/Workspace/scrcpy/cmake-build-debug/app/test_device_event_deserialize

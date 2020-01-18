@@ -1,0 +1,27 @@
+/usr/local/bin/mcw -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/james/Workspace/scrcpy
+Generate to build directory: /Users/james/Workspace/scrcpy/cmake-build-debug
+The Meson build system
+Version: 0.53.0
+Source dir: /Users/james/Workspace/scrcpy
+Build dir: /Users/james/Workspace/scrcpy/cmake-build-debug
+Build type: native build
+Project name: scrcpy
+Project version: 1.12.1
+C compiler for the host machine: cc (clang 11.0.0 "Apple clang version 11.0.0 (clang-1100.0.33.17)")
+C linker for the host machine: cc APPLE ld 530
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Found pkg-config: /usr/local/bin/pkg-config (0.29.2)
+Run-time dependency libavformat found: YES 58.29.100
+Run-time dependency libavcodec found: YES 58.54.100
+Run-time dependency libavutil found: YES 56.31.100
+Run-time dependency sdl2 found: YES 2.0.10
+Configuring config.h using configuration
+Program ./scripts/build-wrapper.sh found: YES (/Users/james/Workspace/scrcpy/server/./scripts/build-wrapper.sh)
+WARNING: Project targeting '>= 0.37' but tried to use feature introduced in '0.48.0': console arg in custom_target
+DEPRECATION: build_always is deprecated. Combine build_by_default and build_always_stale instead.
+Build targets in project: 10
+WARNING: Project specifies a minimum meson_version '>= 0.37' but uses features which were added in newer versions:
+ * 0.48.0: {'console arg in custom_target'}
+
+Found ninja-1.9.0 at /usr/local/bin/ninja
