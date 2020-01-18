@@ -5,9 +5,10 @@
 #include "config.h"
 #include "util/lock.h"
 #include "util/log.h"
+#include "control_msg.h"
 
 bool
-controller_init(struct controller *controller, socket_t control_socket,socket_t remote_control_socket,
+controller_init(struct controller *controller, socket_t control_socket, socket_t remote_control_socket,
                 socket_t remote_client_socket) {
     cbuf_init(&controller->queue);
 
@@ -15,7 +16,7 @@ controller_init(struct controller *controller, socket_t control_socket,socket_t 
         return false;
     }
 
-    if (!remote_init(&controller->remote, remote_control_socket,remote_client_socket,controller)) {
+    if (!remote_init(&controller->remote, remote_control_socket, remote_client_socket, controller)) {
         return false;
     }
 
@@ -34,6 +35,7 @@ controller_init(struct controller *controller, socket_t control_socket,socket_t 
 
     controller->control_socket = control_socket;
     controller->stopped = false;
+    controller->fp_events = NULL;
 
     return true;
 }
@@ -53,12 +55,118 @@ controller_destroy(struct controller *controller) {
 
 }
 
+char *to_json(const struct control_msg *msg) {
+    char buffer[CONTROL_MSG_SERIALIZED_MAX_SIZE];
+    char temp[256];
+    strcpy(buffer, "{\n");
+    switch (msg->type) {
+        case CONTROL_MSG_TYPE_INJECT_KEYCODE: {
+            sprintf(temp, "    \"msg_type\": \"%s\",\n", "CONTROL_MSG_TYPE_INJECT_KEYCODE");
+            strcat(buffer, temp);
+            sprintf(temp, "    \"key_code\":{\n");
+            strcat(buffer, temp);
+            sprintf(temp, "        \"action\":%d,\n", msg->inject_keycode.action);
+            strcat(buffer, temp);
+            sprintf(temp, "        \"key_code\":%d,\n", msg->inject_keycode.keycode);
+            strcat(buffer, temp);
+            sprintf(temp, "        \"meta_state\":%d\n", msg->inject_keycode.metastate);
+            strcat(buffer, temp);
+            strcat(buffer, "    }\n");
+        }
+            break;
+        case CONTROL_MSG_TYPE_INJECT_TEXT: {
+            sprintf(temp, "    \"msg_type\": \"%s\",\n", "CONTROL_MSG_TYPE_INJECT_TEXT");
+            strcat(buffer, temp);
+            sprintf(temp, "    \"inject_text\":{\n");
+            strcat(buffer, temp);
+            sprintf(temp, "        \"text\":%s\n", msg->inject_text.text);
+            strcat(buffer, temp);
+            strcat(buffer, "    }\n");
+        }
+            break;
+        case CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT: {
+            sprintf(temp, "    \"msg_type\": \"%s\",\n", "CONTROL_MSG_TYPE_INJECT_TOUCH_EVENT");
+            strcat(buffer, temp);
+            sprintf(temp, "    \"touch_event\":{\n");
+            strcat(buffer, temp);
+            sprintf(temp, "        \"action\":%d,\n", msg->inject_touch_event.action);
+            strcat(buffer, temp);
+            sprintf(temp, "        \"buttons\":%d,\n", msg->inject_touch_event.buttons);
+            strcat(buffer, temp);
+            sprintf(temp, "        \"pointer\":%lld,\n", msg->inject_touch_event.pointer_id);
+            strcat(buffer, temp);
+            sprintf(temp, "        \"pressure\":%f,\n", msg->inject_touch_event.pressure);
+            strcat(buffer, temp);
+            sprintf(temp, "        \"position\":{\n");
+            strcat(buffer, temp);
+            sprintf(temp, "            \"screen_size\": {\n");
+            strcat(buffer, temp);
+            sprintf(temp, "                \"width\": %d,\n", msg->inject_touch_event.position.screen_size.width);
+            strcat(buffer, temp);
+            sprintf(temp, "                \"height\": %d\n", msg->inject_touch_event.position.screen_size.height);
+            strcat(buffer, temp);
+            strcat(buffer, "            },\n");
+            sprintf(temp, "            \"point\": {\n");
+            strcat(buffer, temp);
+            sprintf(temp, "                \"x\": %d,\n", msg->inject_touch_event.position.point.x);
+            strcat(buffer, temp);
+            sprintf(temp, "                \"y\": %d\n", msg->inject_touch_event.position.point.y);
+            strcat(buffer, temp);
+
+            strcat(buffer, "            }\n");
+            strcat(buffer, "        }\n");
+            strcat(buffer, "    }\n");
+        }
+            break;
+        case CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT: {
+
+            sprintf(temp, "    \"msg_type\": \"%s\",\n", "CONTROL_MSG_TYPE_INJECT_SCROLL_EVENT");
+            strcat(buffer, temp);
+            sprintf(temp, "    \"scroll_event\":{\n");
+            strcat(buffer, temp);
+            sprintf(temp, "        \"h_scroll\":%d,\n", msg->inject_scroll_event.hscroll);
+            strcat(buffer, temp);
+            sprintf(temp, "        \"v_scroll\":%d,\n", msg->inject_scroll_event.vscroll);
+            strcat(buffer, temp);
+            sprintf(temp, "        \"position\":{\n");
+            strcat(buffer, temp);
+            sprintf(temp, "            \"screen_size\": {\n");
+            strcat(buffer, temp);
+            sprintf(temp, "                \"width\": %d,\n", msg->inject_touch_event.position.screen_size.width);
+            strcat(buffer, temp);
+            sprintf(temp, "                \"height\": %d\n", msg->inject_touch_event.position.screen_size.height);
+            strcat(buffer, temp);
+            strcat(buffer, "            },\n");
+            sprintf(temp, "            \"point\": {\n");
+            strcat(buffer, temp);
+            sprintf(temp, "                \"x\": %d,\n", msg->inject_touch_event.position.point.x);
+            strcat(buffer, temp);
+            sprintf(temp, "                \"y\": %d\n", msg->inject_touch_event.position.point.y);
+            strcat(buffer, temp);
+
+            strcat(buffer, "            }\n");
+            strcat(buffer, "        }\n");
+            strcat(buffer, "    }\n");
+        }
+            break;
+        default:
+            break;
+
+    }
+    strcat(buffer, "},\n");
+    return buffer;
+}
+
 bool
 controller_push_msg(struct controller *controller,
-                      const struct control_msg *msg) {
+                    const struct control_msg *msg) {
     mutex_lock(controller->mutex);
     bool was_empty = cbuf_is_empty(&controller->queue);
     bool res = cbuf_push(&controller->queue, *msg);
+    FILE *fp = controller->fp_events;
+    if (fp != NULL) {
+        fprintf(fp, "%s", to_json(msg));
+    }
     if (was_empty) {
         cond_signal(controller->msg_cond);
     }
@@ -68,7 +176,7 @@ controller_push_msg(struct controller *controller,
 
 static bool
 process_msg(struct controller *controller,
-              const struct control_msg *msg) {
+            const struct control_msg *msg) {
     unsigned char serialized_msg[CONTROL_MSG_SERIALIZED_MAX_SIZE];
     int length = control_msg_serialize(msg, serialized_msg);
     if (!length) {

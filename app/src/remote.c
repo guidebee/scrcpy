@@ -60,19 +60,41 @@ remote_destroy(struct remote *remote) {
 }
 
 static void
-process_msg(struct remote *remote,struct control_msg *msg) {
-//    switch (msg->type) {
-//        case DEVICE_MSG_TYPE_CLIPBOARD:
-//            
-//            SDL_SetClipboardText(msg->clipboard.text);
-//            break;
-//    }
-    controller_push_msg(remote->controller,msg);
+process_msg(struct remote *remote, struct control_msg *msg) {
+
+    switch (msg->type) {
+        case CONTROL_MSG_TYPE_START_RECORDING: {
+            LOGI("create file");
+            FILE *fp = remote->controller->fp_events;
+            if (fp != NULL) {
+                fclose(fp);
+
+            }
+            remote->controller->fp_events = fopen("saved_event.json", "w");
+
+        }
+            break;
+        case CONTROL_MSG_TYPE_END_RECORDING: {
+
+            FILE *fp = remote->controller->fp_events;
+            if (fp != NULL) {
+                LOGI("close file");
+                fflush(fp);
+                fclose(fp);
+                remote->controller->fp_events = NULL;
+            }
+        }
+            break;
+        default:
+            controller_push_msg(remote->controller, msg);
+            break;
+    }
+
     LOGI("Remote control message received");
 }
 
 static ssize_t
-process_msgs(struct remote *remote,const unsigned char *buf, size_t len) {
+process_msgs(struct remote *remote, const unsigned char *buf, size_t len) {
     size_t head = 0;
     for (;;) {
         struct control_msg msg;
@@ -84,7 +106,7 @@ process_msgs(struct remote *remote,const unsigned char *buf, size_t len) {
             return head;
         }
 
-        process_msg(remote,&msg);
+        process_msg(remote, &msg);
         head += r;
         assert(head <= len);
         if (head == len) {
@@ -118,7 +140,7 @@ run_remote(void *data) {
             }
         }
 
-        ssize_t consumed = process_msgs(remote,buf, r);
+        ssize_t consumed = process_msgs(remote, buf, r);
         if (consumed == -1) {
             // an error occurred
             break;

@@ -20,6 +20,7 @@ struct controller {
     SDL_mutex *mutex;
     SDL_cond *msg_cond;
     bool stopped;
+    FILE *fp_events;
     struct control_msg_queue queue;
     struct receiver receiver;
     struct remote remote;

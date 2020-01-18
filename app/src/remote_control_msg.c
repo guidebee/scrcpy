@@ -76,7 +76,11 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
 //            msg->type = CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE;
         } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_ROTATE_DEVICE") == 0) {
             msg->type = CONTROL_MSG_TYPE_ROTATE_DEVICE;
-        } else /* default: */
+        } else if (strcmp(msg_type, "CONTROL_MSG_TYPE_START_RECORDING") == 0) {
+            msg->type = CONTROL_MSG_TYPE_START_RECORDING;
+        }else if (strcmp(msg_type, "CONTROL_MSG_TYPE_END_RECORDING") == 0) {
+            msg->type = CONTROL_MSG_TYPE_END_RECORDING;
+        }else /* default: */
         {
             msg->type = 9999;
         }
@@ -150,26 +154,32 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
 
                 break;
             case CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON:
-                LOGW("CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_BACK_OR_SCREEN_ON: %d", (int) msg->type);
                 break;
             case CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL:
-                LOGW("CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_EXPAND_NOTIFICATION_PANEL: %d", (int) msg->type);
                 break;
             case CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL:
-                LOGW("CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_COLLAPSE_NOTIFICATION_PANEL: %d", (int) msg->type);
                 break;
             case CONTROL_MSG_TYPE_GET_CLIPBOARD:
-                LOGW("CONTROL_MSG_TYPE_GET_CLIPBOARD: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_GET_CLIPBOARD: %d", (int) msg->type);
                 break;
 
             case CONTROL_MSG_TYPE_SET_CLIPBOARD:
-                LOGW("CONTROL_MSG_TYPE_SET_CLIPBOARD: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_SET_CLIPBOARD: %d", (int) msg->type);
                 break;
             case CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE:
-                LOGW("CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_SET_SCREEN_POWER_MODE: %d", (int) msg->type);
                 break;
             case CONTROL_MSG_TYPE_ROTATE_DEVICE:
-                LOGW("CONTROL_MSG_TYPE_ROTATE_DEVICE: %d", (int) msg->type);
+                LOGD("CONTROL_MSG_TYPE_ROTATE_DEVICE: %d", (int) msg->type);
+                break;
+            case CONTROL_MSG_TYPE_START_RECORDING:
+                LOGD("CONTROL_MSG_TYPE_START_RECORDING: %d", (int) msg->type);
+                break;
+            case CONTROL_MSG_TYPE_END_RECORDING:
+                LOGD("CONTROL_MSG_TYPE_END_RECORDING: %d", (int) msg->type);
                 break;
             default:
                 LOGW("Unknown remote control message type: %d", (int) msg->type);
