@@ -410,6 +410,16 @@ input_manager_process_key(struct input_manager *im,
                 }
 
                 return;
+            case SDLK_e:
+                if (control && cmd && !shift && !repeat && down) {
+                    if(controller->fp_events==NULL){
+                        controller_start_recording(controller);
+                    }else{
+                        controller_stop_recording(controller);
+                    }
+                }
+
+                return;
         }
 
         return;

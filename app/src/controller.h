@@ -40,6 +40,12 @@ void
 controller_stop(struct controller *controller);
 
 void
+controller_start_recording(struct controller *controller);
+
+void
+controller_stop_recording(struct controller *controller);
+
+void
 controller_join(struct controller *controller);
 
 bool

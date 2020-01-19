@@ -64,25 +64,11 @@ process_msg(struct remote *remote, struct control_msg *msg) {
 
     switch (msg->type) {
         case CONTROL_MSG_TYPE_START_RECORDING: {
-            LOGI("create file");
-            FILE *fp = remote->controller->fp_events;
-            if (fp != NULL) {
-                fclose(fp);
-
-            }
-            remote->controller->fp_events = fopen("saved_event.json", "w");
-
+            controller_start_recording(remote->controller);
         }
             break;
         case CONTROL_MSG_TYPE_END_RECORDING: {
-
-            FILE *fp = remote->controller->fp_events;
-            if (fp != NULL) {
-                LOGI("close file");
-                fflush(fp);
-                fclose(fp);
-                remote->controller->fp_events = NULL;
-            }
+            controller_stop_recording(remote->controller);
         }
             break;
         default:
