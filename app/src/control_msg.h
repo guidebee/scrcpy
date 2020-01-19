@@ -80,4 +80,5 @@ control_msg_serialize(const struct control_msg *msg, unsigned char *buf);
 void
 control_msg_destroy(struct control_msg *msg);
 
+char *control_msg_to_json(const struct control_msg *msg);
 #endif

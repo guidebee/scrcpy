@@ -130,6 +130,7 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
                                                                               "x")->u.integer;
                     msg->inject_touch_event.position.point.y = get_key_object(point,
                                                                               "y")->u.integer;
+
                 }
 
                 break;
@@ -185,7 +186,11 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
                 LOGW("Unknown remote control message type: %d", (int) msg->type);
                 ret = 0; // error, we cannot recover
         }
-
+        {
+            char *json = control_msg_to_json(msg);
+            LOGD("%s",json);
+            SDL_free(json);
+        }
         json_value_free(value);
         return ret;
     } else {
