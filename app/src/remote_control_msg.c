@@ -51,7 +51,7 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
         // at least type + empty string length
         return 0; // not available
     }
-    json_value *value = json_parse(buf, len);
+    json_value *value = json_parse((const json_char *)buf, len);
     if (value != NULL) {
         char *msg_type = get_message_type(value);
         if (strcmp(msg_type, "CONTROL_MSG_TYPE_INJECT_KEYCODE") == 0) {
@@ -118,7 +118,7 @@ remote_control_msg_deserialize(const unsigned char *buf, size_t len,
                     msg->inject_touch_event.action = get_key_object(touch_event, "action")->u.integer;
                     msg->inject_touch_event.buttons = get_key_object(touch_event, "buttons")->u.integer;
                     msg->inject_touch_event.pointer_id = get_key_object(touch_event, "pointer")->u.integer;
-                    msg->inject_touch_event.pressure = get_key_object(touch_event, "pointer")->u.dbl;
+                    msg->inject_touch_event.pressure = (float)(get_key_object(touch_event, "pressure")->u.dbl);
                     json_value *position = get_key_object(touch_event, "position");
                     json_value *screen_size = get_key_object(position, "screen_size");
                     msg->inject_touch_event.position.screen_size.width = get_key_object(screen_size,
