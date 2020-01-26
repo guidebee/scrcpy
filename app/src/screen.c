@@ -3,7 +3,8 @@
 #include <assert.h>
 #include <string.h>
 #include <SDL2/SDL.h>
-
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
 
 #include "config.h"
 #include "common.h"
@@ -13,6 +14,7 @@
 #include "video_buffer.h"
 #include "util/lock.h"
 #include "util/log.h"
+
 
 #define DISPLAY_MARGINS 96
 
@@ -311,6 +313,15 @@ update_texture(struct screen *screen, const AVFrame *frame) {
                          frame->data[0], frame->linesize[0],
                          frame->data[1], frame->linesize[1],
                          frame->data[2], frame->linesize[2]);
+
+    screen_saveframe(screen,frame);
+
+    AVCodecContext    *pCodecCtxOrig = screen->stream.codec_ctx;
+
+
+
+//    write_frame_to_file(frame,screen->stream.codec_ctx);
+
 }
 
 bool
@@ -334,8 +345,8 @@ screen_update_frame(struct screen *screen, struct video_buffer *vb) {
 void save_texture(struct screen *screen,SDL_Renderer *renderer, SDL_Texture *texture, const char *file_name) {
     SDL_Texture *target = SDL_GetRenderTarget(renderer);
     SDL_SetRenderTarget(renderer, texture);
-    int width, height;
-    SDL_QueryTexture(texture, NULL, NULL, &width, &height);
+    int width, height,format;
+    SDL_QueryTexture(texture, &format, NULL, &width, &height);
     bool is_portrait = height>width;
     uint16_t screen_width=screen->device_screen_size.width;
     uint16_t screen_height=screen->device_screen_size.height;
@@ -351,8 +362,10 @@ void save_texture(struct screen *screen,SDL_Renderer *renderer, SDL_Texture *tex
     SDL_Surface *surface = SDL_CreateRGBSurface(0, screen_width,
                                                 screen_height, 32, 0, 0, 0, 0);
     SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);
+
     SDL_SaveBMP(surface, file_name);
     SDL_FreeSurface(surface);
+
     SDL_SetRenderTarget(renderer, target);
 }
 
@@ -460,3 +473,115 @@ screen_handle_window_event(struct screen *screen,
             break;
     }
 }
+
+
+void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
+    FILE *pFile;
+    char szFilename[32];
+    int  y;
+
+    // Open file
+    sprintf(szFilename, "frame%d.ppm", iFrame);
+    pFile=fopen(szFilename, "wb");
+    if(pFile==NULL)
+        return;
+
+    // Write header
+    fprintf(pFile, "P6\n%d %d\n255\n", width, height);
+
+    // Write pixel data
+    for(y=0; y<height; y++)
+        fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
+
+    // Close file
+    fclose(pFile);
+}
+
+void screen_saveframe(struct screen *screen,AVFrame *pFrame){
+    AVCodecContext    *pCodecCtxOrig = NULL;
+    AVCodecContext    *pCodecCtx = NULL;
+    AVCodec           *pCodec = NULL;
+
+    SDL_Texture *texture;
+
+    AVFrame           *pFrameRGB = NULL;
+    struct SwsContext *sws_ctx = NULL;
+
+    int               numBytes;
+    uint8_t           *buffer = NULL;
+
+    pCodecCtxOrig = screen->stream.codec_ctx;
+    pCodec=screen->stream.codec;
+    texture = screen->texture;
+    int width, height,format;
+    SDL_QueryTexture(texture, &format, NULL, &width, &height);
+
+    if(pCodec==NULL) {
+        fprintf(stderr, "Unsupported codec!\n");
+        return ;
+    }
+
+    // Copy context
+    pCodecCtx = avcodec_alloc_context3(pCodec);
+    if(avcodec_copy_context(pCodecCtx, pCodecCtxOrig) != 0) {
+        fprintf(stderr, "Couldn't copy codec context");
+        return ; // Error copying codec context
+    }
+
+    pCodecCtx->height=height;
+    pCodecCtx->width=width;
+    pCodecCtx->pix_fmt=AV_PIX_FMT_YUV420P;
+    pCodecCtx->coded_height=height;
+    pCodecCtx->coded_width=width;
+
+    // Open codec
+    if(avcodec_open2(pCodecCtx, pCodec, NULL)<0)
+        return ; // Could not open codec
+
+    pFrameRGB=av_frame_alloc();
+    if(pFrameRGB==NULL)
+        return;
+
+    // Determine required buffer size and allocate buffer
+    numBytes=avpicture_get_size(AV_PIX_FMT_RGB24, pCodecCtx->width,
+                                pCodecCtx->height);
+    buffer=(uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
+
+    // Assign appropriate parts of buffer to image planes in pFrameRGB
+    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+    // of AVPicture
+    avpicture_fill((AVPicture *)pFrameRGB, buffer, AV_PIX_FMT_RGB24,
+                   pCodecCtx->width, pCodecCtx->height);
+
+    // initialize SWS context for software scaling
+    sws_ctx = sws_getContext(pCodecCtx->width,
+                             pCodecCtx->height,
+                             pCodecCtx->pix_fmt,
+                             pCodecCtx->width,
+                             pCodecCtx->height,
+                             AV_PIX_FMT_RGB24,
+                             SWS_BILINEAR,
+                             NULL,
+                             NULL,
+                             NULL
+    );
+
+    if (sws_ctx==NULL) return;
+    sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
+              pFrame->linesize, 0, pCodecCtx->height,
+              pFrameRGB->data, pFrameRGB->linesize);
+
+
+    SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height,
+              0);
+
+    av_free(buffer);
+
+    av_frame_free(&pFrameRGB);
+
+
+
+    // Close the codecs
+    avcodec_close(pCodecCtx);
+}
+

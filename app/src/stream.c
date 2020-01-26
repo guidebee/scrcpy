@@ -190,7 +190,7 @@ run_stream(void *data) {
         LOGE("H.264 decoder not found");
         goto end;
     }
-
+    stream->codec = codec;
     stream->codec_ctx = avcodec_alloc_context3(codec);
     if (!stream->codec_ctx) {
         LOGC("Could not allocate codec context");

@@ -374,6 +374,7 @@ scrcpy(const struct scrcpy_options *options) {
     }
     stream_started = true;
 
+
     if (options->display) {
         if (options->control) {
             if (!controller_init(&controller, server.control_socket,
@@ -390,6 +391,7 @@ scrcpy(const struct scrcpy_options *options) {
 
         const char *window_title =
             options->window_title ? options->window_title : device_name;
+        screen.stream=stream;
 
         if (!screen_init_rendering(&screen, window_title, frame_size,
                                    options->always_on_top, options->window_x,

@@ -4,10 +4,11 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <libavformat/avformat.h>
-
+#include <libavutil/imgutils.h>
+#include <libswscale/swscale.h>
 #include "config.h"
 #include "common.h"
-
+#include "stream.h"
 struct video_buffer;
 
 struct screen {
@@ -24,6 +25,8 @@ struct screen {
     bool fullscreen;
     bool maximized;
     bool no_window;
+    struct stream stream;
+
     struct size device_screen_size;
 };
 
@@ -96,4 +99,5 @@ screen_handle_window_event(struct screen *screen, const SDL_WindowEvent *event);
 void
 screen_capture(struct screen *screen);
 
+void screen_saveframe(struct screen *screen,AVFrame *pFrame);
 #endif

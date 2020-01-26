@@ -19,6 +19,7 @@ struct stream {
     struct decoder *decoder;
     struct recorder *recorder;
     AVCodecContext *codec_ctx;
+    AVCodec           *codec;
     AVCodecParserContext *parser;
     // successive packets may need to be concatenated, until a non-config
     // packet is available

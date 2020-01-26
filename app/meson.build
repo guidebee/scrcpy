@@ -23,8 +23,11 @@ src = [
     'src/video_buffer.c',
     'src/util/net.c',
     'src/util/json.c',
-    'src/util/str_util.c'
+    'src/util/str_util.c',
+    'src/dummy.cpp'
 ]
+
+
 
 if not get_option('crossbuild_windows')
 
@@ -33,7 +36,9 @@ if not get_option('crossbuild_windows')
         dependency('libavformat'),
         dependency('libavcodec'),
         dependency('libavutil'),
+        dependency('libswscale'),
         dependency('sdl2'),
+        dependency('opencv4'),
     ]
 
 else
